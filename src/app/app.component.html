@@ -1,0 +1,195 @@
+<main class="page-shell">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Azure DevOps Commit Explorer</p>
+      <h1>Consulta commits direto da api do Azure DevOps</h1>
+      <p class="hero-copy">
+
+      </p>
+    </div>
+
+    <div class="upload-card action-card">
+      <span class="upload-title">Ações</span>
+      <span class="upload-copy">Carregue a configuracao do backend, consulte os commits e exporte o CSV.</span>
+      <button type="button" class="ghost-button" (click)="reloadConfig()" [disabled]="inProgress">
+        Recarregar configuracao
+      </button>
+      <button type="button" class="primary-button" (click)="fetchCommits()" [disabled]="inProgress">
+        {{ inProgress ? 'Consultando...' : 'Buscar commits' }}
+      </button>
+      <button type="button" class="ghost-button" (click)="loadLastCommits()" [disabled]="inProgress">
+        Carregar ultima consulta
+      </button>
+      <button type="button" class="ghost-button" (click)="exportCsv()" [disabled]="inProgress">
+        Exportar CSV do backend
+      </button>
+    </div>
+  </section>
+
+  <section class="panel config-panel" *ngIf="backendConfig as config">
+    <div class="panel-header">
+      <div>
+        <h2>Configuracao atual</h2>
+        <p>{{ statusMessage }}</p>
+      </div>
+    </div>
+
+    <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+    <div class="config-summary">
+      <article class="summary-card mini-card">
+        <span>Organizacao</span>
+        <strong>{{ config.orgUrl }}</strong>
+      </article>
+      <article class="summary-card mini-card">
+        <span>Autores</span>
+        <strong>{{ config.authorEmails.length }}</strong>
+      </article>
+      <article class="summary-card mini-card">
+        <span>Repositorios</span>
+        <strong>{{ config.repositories.length }}</strong>
+      </article>
+      <article class="summary-card mini-card">
+        <span>Dias consultados</span>
+        <strong>{{ daysAgo }}</strong>
+      </article>
+    </div>
+
+    <div class="filters-grid config-grid">
+      <label>
+        <span>Janela em dias</span>
+        <input type="number" min="1" [(ngModel)]="daysAgo">
+      </label>
+
+      <label>
+        <span>Ultima geracao</span>
+        <input type="text" [value]="lastGeneratedAt || '-'" readonly>
+      </label>
+
+      <label class="full-width">
+        <span>Autores configurados</span>
+        <textarea [value]="configuredAuthorsDisplay" rows="8" readonly></textarea>
+      </label>
+
+      <label class="full-width">
+        <span>Repositorios configurados</span>
+        <textarea [value]="config.repositories | json" rows="12" readonly></textarea>
+      </label>
+    </div>
+  </section>
+
+  <section class="summary-grid" *ngIf="records.length">
+    <article class="summary-card" *ngFor="let card of summaryCards">
+      <span>{{ card.label }}</span>
+      <strong>{{ card.value }}</strong>
+    </article>
+  </section>
+
+  <section class="insights-grid" *ngIf="filteredRecords.length">
+    <article class="panel compact-panel">
+      <h2>Top repositorios</h2>
+      <ul class="ranking-list">
+        <li *ngFor="let repository of topRepositories">
+          <span>{{ repository.name }}</span>
+          <strong>{{ repository.total }}</strong>
+        </li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="panel" *ngIf="backendConfig">
+    <div class="panel-header">
+      <div>
+        <h2>Filtros</h2>
+        <p>{{ filteredRecords.length }} linha(s) apos filtros</p>
+      </div>
+      <button type="button" class="ghost-button" (click)="clearFilters()">
+        Limpar filtros
+      </button>
+    </div>
+
+    <div class="filters-grid">
+      <label>
+        <span>Busca livre</span>
+        <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Mensagem, repo, usuario...">
+      </label>
+
+      <label>
+        <span>Usuario</span>
+        <select [(ngModel)]="selectedAuthor" (ngModelChange)="applyFilters()">
+          <option *ngFor="let author of authors" [value]="author">{{ author }}</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Repositorio</span>
+        <select [(ngModel)]="selectedRepository" (ngModelChange)="applyFilters()">
+          <option *ngFor="let repository of repositories" [value]="repository">{{ repository }}</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Branch</span>
+        <select [(ngModel)]="selectedBranch" (ngModelChange)="applyFilters()">
+          <option *ngFor="let branch of branches" [value]="branch">{{ branch }}</option>
+        </select>
+      </label>
+    </div>
+  </section>
+
+  <section class="panel table-panel" *ngIf="hasFetchedCommits">
+    <div class="panel-header">
+      <div>
+        <h2>Tabela de commits</h2>
+        <p>{{ filteredRecords.length }} linha(s) exibida(s)</p>
+      </div>
+      <button type="button" class="primary-button" (click)="exportCsv()" [disabled]="inProgress">
+        Exportar CSV
+      </button>
+    </div>
+
+    <div class="table-wrapper">
+      <table *ngIf="filteredRecords.length; else emptyResults">
+        <thead>
+          <tr>
+            <th (click)="sortBy('author')">Usuario</th>
+            <th (click)="sortBy('email')">Email</th>
+            <th (click)="sortBy('repository')">Repositorio</th>
+            <th (click)="sortBy('branch')">Branch</th>
+            <th (click)="sortBy('date')">Data</th>
+            <th (click)="sortBy('message')">Mensagem</th>
+            <th (click)="sortBy('commitId')">Commit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let record of filteredRecords; trackBy: trackByCommit">
+            <td>{{ record.author || '-' }}</td>
+            <td>{{ record.email || '-' }}</td>
+            <td>{{ record.repository || '-' }}</td>
+            <td>{{ record.branch || '-' }}</td>
+            <td>{{ record.date ? (record.date | date:'dd/MM/yyyy HH:mm:ss') : (record.rawDate || '-') }}</td>
+            <td class="message-cell">{{ record.message || '-' }}</td>
+            <td><code>{{ record.commitId || '-' }}</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #emptyResults>
+      <p class="empty-copy">Nenhum commit encontrado para a consulta e filtros atuais.</p>
+    </ng-template>
+  </section>
+
+  <section class="panel compact-panel">
+    <h2>Progresso e logs</h2>
+    <p class="progress-copy">{{ progressMessage }}</p>
+    <p class="progress-copy">Inicio: {{ lastStartedAt ? (lastStartedAt | date:'dd/MM/yyyy HH:mm:ss') : '-' }}</p>
+    <p class="progress-copy">Fim: {{ lastFinishedAt ? (lastFinishedAt | date:'dd/MM/yyyy HH:mm:ss') : '-' }}</p>
+    <div class="log-box" *ngIf="logLines.length; else noLogs">
+      <div class="log-line" *ngFor="let line of logLines">{{ line }}</div>
+    </div>
+    <ng-template #noLogs>
+      <p class="empty-copy">Sem logs por enquanto.</p>
+    </ng-template>
+  </section>
+</main>
