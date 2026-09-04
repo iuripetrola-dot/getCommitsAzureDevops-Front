@@ -52,7 +52,7 @@ export class AppComponent implements OnInit {
   }
 
   protected get authors(): string[] {
-    return buildAuthorOptions(this.records, this.backendConfig);
+    return buildAuthorOptions(this.records);
   }
 
   protected get repositories(): string[] {
@@ -77,41 +77,6 @@ export class AppComponent implements OnInit {
 
   protected async reloadConfig(): Promise<void> {
     await this.loadConfig();
-  }
-
-  protected async fetchCommits(): Promise<void> {
-    const requestStartedAt = new Date().toISOString();
-    this.inProgress = true;
-    this.errorMessage = '';
-    this.progressMessage = 'Consultando api Devops ...';
-    this.statusMessage = 'Buscando commits...';
-    this.logLines = [];
-    this.lastStartedAt = requestStartedAt;
-    this.lastFinishedAt = '';
-
-    try {
-      const payload = await this.azureDevopsService.fetchCommits(this.daysAgo);
-      this.hasFetchedCommits = true;
-      this.records = payload.commits;
-      this.logLines = payload.logs;
-      this.lastStartedAt = payload.startedAt;
-      this.lastFinishedAt = payload.finishedAt;
-      this.lastGeneratedAt = payload.generatedAt;
-      this.progressMessage = 'Coleta concluida.';
-      this.clearFilters();
-      this.statusMessage =
-        payload.totalCommits > 0
-          ? `${payload.totalCommits} commit(s) carregado(s).`
-          : 'Consulta concluida sem commits para os filtros informados.';
-    } catch (error) {
-      this.hasFetchedCommits = true;
-      this.lastFinishedAt = new Date().toISOString();
-      this.errorMessage = this.formatError(error);
-      this.statusMessage = 'Falha ao consultar o backend.';
-      this.progressMessage = 'Execucao interrompida.';
-    } finally {
-      this.inProgress = false;
-    }
   }
 
   protected async loadLastCommits(): Promise<void> {

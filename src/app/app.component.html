@@ -10,15 +10,12 @@
 
     <div class="upload-card action-card">
       <span class="upload-title">Ações</span>
-      <span class="upload-copy">Carregue a configuracao do backend, consulte os commits e exporte o CSV.</span>
+      <span class="upload-copy">Carregue a configuracao do backend, visualize a ultima consulta e exporte o CSV.</span>
       <button type="button" class="ghost-button" (click)="reloadConfig()" [disabled]="inProgress">
         Recarregar configuracao
       </button>
-      <button type="button" class="primary-button" (click)="fetchCommits()" [disabled]="inProgress">
-        {{ inProgress ? 'Consultando...' : 'Buscar commits' }}
-      </button>
-      <button type="button" class="ghost-button" (click)="loadLastCommits()" [disabled]="inProgress">
-        Carregar ultima consulta
+      <button type="button" class="primary-button" (click)="loadLastCommits()" [disabled]="inProgress">
+        {{ inProgress ? 'Carregando...' : 'Carregar commits' }}
       </button>
       <button type="button" class="ghost-button" (click)="exportCsv()" [disabled]="inProgress">
         Exportar CSV do backend
@@ -115,7 +112,7 @@
       </label>
 
       <label>
-        <span>Usuario</span>
+        <span>Matricula</span>
         <select [(ngModel)]="selectedAuthor" (ngModelChange)="applyFilters()">
           <option *ngFor="let author of authors" [value]="author">{{ author }}</option>
         </select>
@@ -152,7 +149,7 @@
       <table *ngIf="filteredRecords.length; else emptyResults">
         <thead>
           <tr>
-            <th (click)="sortBy('author')">Usuario</th>
+            <th (click)="sortBy('author')">Matricula</th>
             <th (click)="sortBy('email')">Email</th>
             <th (click)="sortBy('repository')">Repositorio</th>
             <th (click)="sortBy('branch')">Branch</th>

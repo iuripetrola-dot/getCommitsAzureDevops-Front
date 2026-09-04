@@ -4,12 +4,8 @@ export function buildOptions(values: string[]): string[] {
   return ['Todos', ...Array.from(new Set(values.filter(Boolean))).sort((left, right) => left.localeCompare(right))];
 }
 
-export function buildAuthorOptions(records: CommitRecord[], backendConfig: BackendConfig | null): string[] {
-  const configuredAuthors = Array.isArray(backendConfig?.authors)
-    ? backendConfig?.authors?.map((author) => author.name?.trim() || author.email)
-    : backendConfig?.authorEmails ?? [];
-
-  return buildOptions([...(configuredAuthors || []), ...records.map((record) => record.author)]);
+export function buildAuthorOptions(records: CommitRecord[]): string[] {
+  return buildOptions(records.map((record) => record.author));
 }
 
 export function buildRepositoryOptions(records: CommitRecord[], backendConfig: BackendConfig | null): string[] {
