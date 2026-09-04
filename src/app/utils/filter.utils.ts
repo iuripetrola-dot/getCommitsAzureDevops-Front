@@ -6,10 +6,10 @@ export function buildOptions(values: string[]): string[] {
 
 export function buildAuthorOptions(records: CommitRecord[], backendConfig: BackendConfig | null): string[] {
   const configuredAuthors = Array.isArray(backendConfig?.authors)
-    ? backendConfig.authors.map((author) => author.name?.trim() || author.email)
+    ? backendConfig?.authors?.map((author) => author.name?.trim() || author.email)
     : backendConfig?.authorEmails ?? [];
 
-  return buildOptions([...configuredAuthors, ...records.map((record) => record.author)]);
+  return buildOptions([...(configuredAuthors || []), ...records.map((record) => record.author)]);
 }
 
 export function buildRepositoryOptions(records: CommitRecord[], backendConfig: BackendConfig | null): string[] {

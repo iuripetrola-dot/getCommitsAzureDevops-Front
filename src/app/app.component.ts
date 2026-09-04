@@ -18,7 +18,7 @@ import { buildSummaryCards, groupCounts } from './utils/summary.utils';
   standalone: true,
   imports: [CommonModule, FormsModule, DatePipe],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
   constructor(private readonly azureDevopsService: AzureDevopsService) {}

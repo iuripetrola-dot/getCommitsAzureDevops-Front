@@ -66,15 +66,18 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "getCommitsAzureDevops:build:production"
+              "browserTarget": "getCommitsAzureDevops:build:production"
             },
             "development": {
-              "buildTarget": "getCommitsAzureDevops:build:development"
+              "browserTarget": "getCommitsAzureDevops:build:development"
             }
           },
           "defaultConfiguration": "development"
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
