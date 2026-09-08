@@ -1,7 +1,7 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AzureDevopsService } from './services/azure-devops.service';
+import { AzureDevopsService, BackendRequestError } from './services/azure-devops.service';
 import { BackendConfig, CommitRecord, SummaryCard } from './models';
 import { buildConfiguredAuthorsDisplay } from './utils/author-display.utils';
 import {
@@ -100,6 +100,9 @@ export class AppComponent implements OnInit {
           ? `${payload.totalCommits} commit(s) carregado(s) da ultima consulta.`
           : 'Ultima consulta carregada sem commits.';
     } catch (error) {
+      if (error instanceof BackendRequestError && error.statusCode === 404) {
+        this.clearLoadedCommits();
+      }
       this.errorMessage = this.formatError(error);
       this.statusMessage = 'Nao foi possivel carregar a ultima consulta.';
       this.progressMessage = 'Sem resultado salvo no backend.';
@@ -128,6 +131,17 @@ export class AppComponent implements OnInit {
     this.selectedRepository = 'Todos';
     this.selectedBranch = 'Todos';
     this.applyFilters();
+  }
+
+  private clearLoadedCommits(): void {
+    this.records = [];
+    this.filteredRecords = [];
+    this.hasFetchedCommits = false;
+    this.logLines = [];
+    this.lastStartedAt = '';
+    this.lastFinishedAt = '';
+    this.lastGeneratedAt = '';
+    this.clearFilters();
   }
 
   protected sortBy(column: keyof CommitRecord): void {

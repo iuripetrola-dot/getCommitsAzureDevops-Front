@@ -2,6 +2,15 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { BackendCommitRecord, BackendCommitsResponse, BackendConfig, CommitRecord } from '../models';
 
+export class BackendRequestError extends Error {
+  constructor(
+    public readonly statusCode: number,
+    message: string
+  ) {
+    super(message);
+  }
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -87,7 +96,7 @@ export class AzureDevopsService {
 
     if (!response.ok) {
       const errorPayload = parsed as { message?: string };
-      throw new Error(errorPayload.message || `Backend retornou HTTP ${response.status}.`);
+      throw new BackendRequestError(response.status, errorPayload.message || `Backend retornou HTTP ${response.status}.`);
     }
 
     return parsed as T;
