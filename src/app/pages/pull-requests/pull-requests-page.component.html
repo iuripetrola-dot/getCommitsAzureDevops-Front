@@ -31,9 +31,9 @@
           <tr>
             <th>ID</th>
             <th>Titulo</th>
-            <th>Repositorio</th>
-            <th>Autor</th>
-            <th>Criado em</th>
+            <th (click)="sortBy('repository')">Repositorio {{ sortIndicator('repository') }}</th>
+            <th (click)="sortBy('author')">Autor {{ sortIndicator('author') }}</th>
+            <th (click)="sortBy('createdAt')">Criado em {{ sortIndicator('createdAt') }}</th>
             <th>Link</th>
           </tr>
         </thead>
