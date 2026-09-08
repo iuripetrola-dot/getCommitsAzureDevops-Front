@@ -1,6 +1,14 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { BackendCommitRecord, BackendCommitsResponse, BackendConfig, CommitRecord } from '../models';
+import {
+  BackendCommitRecord,
+  BackendCommitsResponse,
+  BackendConfig,
+  BackendPullRequestRecord,
+  BackendPullRequestsResponse,
+  CommitRecord,
+  PullRequestRecord
+} from '../models';
 
 export class BackendRequestError extends Error {
   constructor(
@@ -11,11 +19,18 @@ export class BackendRequestError extends Error {
   }
 }
 
+export interface OpenPullRequestsResult {
+  generatedAt: string;
+  totalPullRequests: number;
+  pullRequests: PullRequestRecord[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AzureDevopsService {
   private readonly apiBaseUrl = environment.apiBaseUrl.replace(/\/$/, '');
+  private openPullRequestsSnapshot: OpenPullRequestsResult | null = null;
 
   async loadConfig(): Promise<BackendConfig> {
     const response = await fetch(`${this.apiBaseUrl}/config`);
@@ -66,6 +81,23 @@ export class AzureDevopsService {
     };
   }
 
+  async loadOpenPullRequests(): Promise<OpenPullRequestsResult> {
+    const response = await fetch(`${this.apiBaseUrl}/pull-requests/open`);
+    const payload = await this.parseJsonResponse<BackendPullRequestsResponse>(response);
+
+    this.openPullRequestsSnapshot = {
+      generatedAt: payload.generatedAt,
+      totalPullRequests: payload.totalPullRequests,
+      pullRequests: payload.pullRequests.map((pullRequest) => this.mapPullRequestRecord(pullRequest))
+    };
+
+    return this.openPullRequestsSnapshot;
+  }
+
+  getOpenPullRequestsSnapshot(): OpenPullRequestsResult | null {
+    return this.openPullRequestsSnapshot;
+  }
+
   buildExportUrl(daysAgo: number): string {
     return `${this.apiBaseUrl}/commits/export?daysAgo=${encodeURIComponent(String(daysAgo))}`;
   }
@@ -81,6 +113,14 @@ export class AzureDevopsService {
       rawDate: commit.rawDate,
       message: commit.message,
       commitId: commit.commitId
+    };
+  }
+
+  private mapPullRequestRecord(pullRequest: BackendPullRequestRecord): PullRequestRecord {
+    return {
+      ...pullRequest,
+      reviewers: Array.isArray(pullRequest.reviewers) ? pullRequest.reviewers : [],
+      createdAt: pullRequest.createdAt ? new Date(pullRequest.createdAt) : null
     };
   }
 

@@ -1,0 +1,61 @@
+<main class="page-shell">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Azure DevOps Pull Requests</p>
+      <h1>Pull Requests abertos</h1>
+      <p class="hero-copy">Consulte os Pull Requests ativos de todos os repositorios configurados no backend.</p>
+    </div>
+
+    <div class="upload-card action-card">
+      <span class="upload-title">Ações</span>
+      <span class="upload-copy">A consulta e feita diretamente no Azure DevOps.</span>
+      <button type="button" class="primary-button" (click)="loadOpenPullRequests()" [disabled]="inProgress">
+        {{ inProgress ? 'Carregando...' : 'Consultar PRs abertos' }}
+      </button>
+    </div>
+  </section>
+
+  <section class="panel table-panel" *ngIf="hasLoadedPullRequests">
+    <div class="panel-header">
+      <div>
+        <h2>Pull Requests abertos</h2>
+        <p>{{ pullRequests.length }} Pull Request(s) | Atualizado em {{ generatedAt ? (generatedAt | date:'dd/MM/yyyy HH:mm:ss') : '-' }}</p>
+      </div>
+    </div>
+
+    <p class="error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+    <div class="table-wrapper">
+      <table *ngIf="pullRequests.length; else emptyPullRequests">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Titulo</th>
+            <th>Repositorio</th>
+            <th>Autor</th>
+            <th>Criado em</th>
+            <th>Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pullRequest of pullRequests">
+            <td><code>{{ pullRequest.id || '-' }}</code></td>
+            <td class="message-cell">{{ pullRequest.title || '-' }}</td>
+            <td>{{ pullRequest.repository || '-' }}</td>
+            <td>{{ pullRequest.author || '-' }}</td>
+            <td>{{ pullRequest.createdAt ? (pullRequest.createdAt | date:'dd/MM/yyyy HH:mm:ss') : '-' }}</td>
+            <td>
+              <a class="pull-request-link" [href]="pullRequest.url" target="_blank" rel="noopener noreferrer">Abrir</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #emptyPullRequests>
+      <p class="empty-copy">Nenhum Pull Request aberto encontrado nos repositorios configurados.</p>
+    </ng-template>
+  </section>
+
+  <p class="error-message standalone-error" *ngIf="errorMessage && !hasLoadedPullRequests">{{ errorMessage }}</p>
+</main>

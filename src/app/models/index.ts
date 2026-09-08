@@ -54,3 +54,28 @@ export interface BackendCommitsResponse {
   logs: string[];
   commits: BackendCommitRecord[];
 }
+
+export interface PullRequestRecord {
+  id: number;
+  title: string;
+  status: string;
+  repository: string;
+  project: string;
+  author: string;
+  email: string;
+  sourceBranch: string;
+  targetBranch: string;
+  reviewers: string[];
+  createdAt: Date | null;
+  url: string;
+}
+
+export interface BackendPullRequestRecord extends Omit<PullRequestRecord, 'createdAt'> {
+  createdAt: string | null;
+}
+
+export interface BackendPullRequestsResponse {
+  generatedAt: string;
+  totalPullRequests: number;
+  pullRequests: BackendPullRequestRecord[];
+}
